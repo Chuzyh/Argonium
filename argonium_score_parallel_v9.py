@@ -430,34 +430,46 @@ def generate_answer(question, config, question_format="auto"):
 
         # System prompt designed for multiple-choice questions
         system_message = (
-            "You are an expert at multiple-choice questions. "
-            "Think through the question step by step, but provide only a concise final answer. "
-            "Your response should contain ONLY:\n"
-            f"1. The correct {label_format}\n"
-            "2. A brief explanation (2-3 sentences) of why this choice is correct.\n\n"
-            "Do not include the question restatement or list of alternatives in your response."
+            "You are an expert reasoner for multiple-choice questions.\n"
+            "First, think step-by-step and show all intermediate reasoning explicitly.\n"
+            "After completing all reasoning, output the final result in the following format:\n"
+            "Final Answer: <the correct {label_format}>\n"
+            "\n"
+            "Do not include anything after the Final Answer line."
         )
 
+
+        # User prompt for MC with structured hidden CoT
         user_message = (
-            f"Please answer this multiple-choice question. Think through it carefully:\n"
-            f"- First, restate the question to yourself\n"
-            f"- Then, consider all the alternative answers provided\n"
-            f"- Finally, provide your response with ONLY the correct {label_format} "
-            f"followed by 2-3 sentences explaining why this choice is correct.\n\n"
+            "Solve the following multiple-choice question.\n\n"
+            "Internally follow these steps:\n"
+            "1. Understand what the question is asking.\n"
+            "2. Identify the relevant knowledge or rules.\n"
+            "3. Evaluate each answer option logically.\n"
+            "4. Eliminate incorrect options one by one.\n"
+            "5. Select the best remaining option.\n\n"
+            "First, think step-by-step internally to ensure correctness and output the thinking process.\n"
+            "But in your final response, output ONLY the correct option label and a short explanation.\n\n"
             f"Question:\n{question}"
         )
+
     else:  # Free-form QA format
         # System prompt designed for general questions
+        # System prompt for QA with implicit CoT
         system_message = (
-            "You are an expert at answering questions in various fields including science, mathematics, "
-            "physics, computer science, and more. Provide concise, accurate, and thorough answers "
-            "based on your knowledge. Focus on being factually correct."
+            "You are an expert capable of accurate scientific and technical reasoning. "
+            "For every question, think step-by-step internally to ensure correctness, "
+            "but do NOT reveal your internal reasoning chain.\n"
+            "Your final answer must be concise, factual, and directly answer the question."
         )
 
+        # User prompt for QA
         user_message = (
-            f"Please answer the following question thoroughly and accurately:\n\n"
+            "Answer the following question. Think carefully and step-by-step internally, "
+            "but output ONLY the final explanation:\n\n"
             f"{question}"
         )
+
 
     try:
         # Add a small random delay to avoid sending too many requests simultaneously
@@ -1236,7 +1248,7 @@ def main():
 
     # Load question-answer pairs
     try:
-        with open(args.questions_file, "r", encoding="utf-8") as f:
+        with open(args.questions_file, "r", encoding="utf-8", errors="ignore") as f:
             data = json.load(f)
     except Exception as e:
         print(f"Error loading questions file: {e}")

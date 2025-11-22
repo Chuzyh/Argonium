@@ -149,7 +149,7 @@ def run_model_test(model, questions_file, grader, random_count, parallel_count, 
     print(f"{'='*60}")
     
     cmd = [
-        "python", "argonium_score_parallel_v9.py",
+        "python3", "argonium_score_parallel_v9.py",
         questions_file,
         "--model", model,
         "--grader", grader,
